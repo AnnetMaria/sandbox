@@ -1,17 +1,20 @@
 package nl.hu.bep2.casino.chips.application;
+
+import jakarta.transaction.Transactional;
+import nl.hu.bep2.casino.chips.data.ChipsRepository;
 import nl.hu.bep2.casino.chips.domain.Chips;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Optional;
 
+
+@Transactional
+@Service
 public class ChipsService {
-    private final ArrayList<Chips> chips = new ArrayList<>();
+    private final ChipsRepository chipsRepository;
 
-    private ChipsService(){
-    }
-
-    private static final ChipsService instance = new ChipsService();
-    public static ChipsService instance(){
-        return instance;
+    public ChipsService(ChipsRepository chipsRepository) {
+        this.chipsRepository = chipsRepository;
     }
 
     public Balance findBalance(String username) {
@@ -34,15 +37,16 @@ public class ChipsService {
     }
 
     private Chips findChipsByUsername(String username) {
-        for(Chips c: this.chips){
-            if(c.getUsername().equals(username)){
-                return c;
-            }
-        }
+        Optional<Chips> maybeChips = this.chipsRepository
+                .findByUsername(username);
 
-        Chips chipsForUnknownUser = new Chips(username, 0L);
-        this.chips.add(chipsForUnknownUser);
-        return chipsForUnknownUser;
+        if (maybeChips.isPresent()) {
+            return maybeChips.get();
+        } else {
+            Chips newChips = new Chips(username, 0L);
+            chipsRepository.save(newChips);
+            return newChips;
+        }
     }
 
     private Balance showBalanceFor(Chips chips) {
