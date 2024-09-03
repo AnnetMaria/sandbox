@@ -1,28 +1,35 @@
 package nl.hu.bep2.casino.shop.application;
 
-import nl.hu.bep2.casino.shop.data.CartStorage;
+import nl.hu.bep2.casino.shop.data.CartRepository;
+import nl.hu.bep2.casino.shop.domain.Cart;
+import nl.hu.bep2.casino.shop.domain.CartNotFoundException;
+import nl.hu.bep2.casino.shop.domain.LineItem;
+import nl.hu.bep2.casino.shop.domain.Product;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class ShoppingService {
-    private final CartStorage cartStorage;
+    private final CartRepository cartRepository;
 
-    public ShoppingService(CartStorage cartStorage) {
-        this.cartStorage = cartStorage;
+    public ShoppingService(CartRepository cartRepository) {
+        this.cartRepository = cartRepository;
     }
 
-    public List<List<Long>> addProductToCart(
-            Long cartId, Long productId, Long productAmount, Long productPrice) {
+    public Cart addProductToCart(
+            Long cartId, Product product) {
 
-        List<List<Long>> productList = this.cartStorage.findCartById(cartId);
+        Cart cart = this.cartRepository
+                .findCartById(cartId)
+                .orElseThrow(() -> new CartNotFoundException("Cart "+ cartId + "note found"));
 
-        List<Long> product = List.of(productId, productAmount, productPrice);
+        List<LineItem> items = cart.getItems();
+        items.add(new LineItem(product, 1));
+        cart.setItems(items);
 
-        productList.add(product);
-
-        this.cartStorage.save(cartId, productList);
-
-        return productList;
+        cartRepository.save(cart);
+        return cart;
     }
 }
 
