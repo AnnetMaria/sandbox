@@ -18,15 +18,13 @@ public class ShoppingService {
     }
 
     public Cart addProductToCart(
-            Long cartId, Product product) {
+            Long cartId, Product product, int amount) {
 
         Cart cart = this.cartRepository
                 .findCartById(cartId)
                 .orElseThrow(() -> new CartNotFoundException("Cart "+ cartId + "note found"));
 
-        List<LineItem> items = cart.getItems();
-        items.add(new LineItem(product, 1));
-        cart.setItems(items);
+        cart.addItem(product, amount);
 
         cartRepository.save(cart);
         return cart;

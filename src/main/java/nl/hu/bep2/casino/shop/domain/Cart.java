@@ -10,7 +10,13 @@ public class Cart {
         return items;
     }
 
-    public void setItems(List<LineItem> items) {
-        this.items = items;
+    public void addItem(Product product, int amount) {
+        LineItem item = items.stream()
+                .filter(lineItem -> lineItem.getProduct().getId() == product.getId())
+                .findFirst()
+                .orElse(new LineItem(product, 0));
+
+        item.addProducts(amount);
     }
+
 }
